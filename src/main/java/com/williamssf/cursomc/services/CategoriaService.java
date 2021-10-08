@@ -18,42 +18,52 @@ import com.williamssf.cursomc.services.exception.ObjectNotFoundException;
 
 @Service
 public class CategoriaService {
-	
+
 	@Autowired
 	private CategoriaRepository repo;
-	
+
 	public Categoria find(Integer id) {
 		Optional<Categoria> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Categoria.class.getName()));
-		
+
 	}
+
 	public Categoria insert(Categoria obj) {
 		obj.setId(null);
 		return repo.save(obj);
 	}
+
 	public Categoria update(Categoria obj) {
-		find(obj.getId());
-		return repo.save(obj);
+		Categoria newObj = find(obj.getId());
+		updateData(newObj, obj);
+		return repo.save(newObj);
 	}
+	
+	//Metodo auxiliar para atualizar os dados da Categoria update
+	private void updateData(Categoria newObj, Categoria obj) {
+		newObj.setNome(obj.getNome());
+	}
+
 	public void deleteById(Integer id) {
 		find(id);
 		try {
 			repo.deleteById(id);
-		}
-		catch(DataIntegrityViolationException e){
+		} catch (DataIntegrityViolationException e) {
 			throw new DataIntegrityException("Não é possivel excluir uma categoria que tem produtos!");
 		}
 	}
-	public List<Categoria> findAll(){
+
+	public List<Categoria> findAll() {
 		return repo.findAll();
 	}
-	public Page<Categoria> findPage(Integer page, Integer linesPerPage, String orderBy, String direction){
+
+	public Page<Categoria> findPage(Integer page, Integer linesPerPage, String orderBy, String direction) {
 		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderBy);
 		return repo.findAll(pageRequest);
 	}
-	
-	//Converte Categoria em CategoriaDTO
+
+	// Converte Categoria em CategoriaDTO
 	public Categoria fromDTO(CategoriaDTO objDto) {
 		return new Categoria(objDto.getId(), objDto.getNome());
 	}
